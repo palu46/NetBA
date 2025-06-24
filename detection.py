@@ -1,94 +1,93 @@
 import torch
+from tqdm import tqdm
+import supervision as sv
 from ultralytics import YOLO
-import cv2
-import numpy as np
-from sklearn.cluster import KMeans
+from teamDetection import TeamClassifier
 
-# Configuration
-YOLO_MODEL = 'yolov8x-seg.pt'
-FRAME_PATH = 'test.png'
-NUM_DOMINANT = 3
-NUM_CLUSTERS = 3
-OUTPUT_PATH = 'result.png'
+device = 'mps' if torch.backends.mps.is_available() else 'cpu'
 
-def get_dominant_color(image, mask_, k=NUM_DOMINANT):
-    masked_pixels = image[mask_ > 0]
-    if len(masked_pixels) < 10:
-        return tuple(np.array([0, 0, 0]) for _ in range(NUM_DOMINANT))
+BALL_ID = 0
+PLAYER_ID = 1
+REFEREE_ID = 2
+RIM_ID = 3
 
-    kmeans_ = KMeans(n_clusters=k, n_init='auto')
-    kmeans_.fit(masked_pixels)
-    centers = kmeans_.cluster_centers_.astype(int)
-    sorted_centers = sorted(centers, key=lambda c : np.sum(c), reverse=True)
-    return tuple(sorted_centers[:NUM_DOMINANT])
+SOURCE_VIDEO_PATH = 'tmp/video/video_3.mp4'
+TARGET_VIDEO_PATH = 'output_2.mp4'
+model = YOLO('best.pt')
+model.conf = 0.5
 
-# Load model
-model = YOLO(YOLO_MODEL)
-frame = cv2.imread(FRAME_PATH)
-results = model(frame)[0]
+def extract_crops(source_video_path: str):
+    frame_generator = sv.get_video_frames_generator(source_video_path, stride=15)
 
-# extract masks and dominant colors
-dominant_colors = []
-valid_indices = []
-bounded_boxes = []
-resized_mask = []
+    crops = []
+    for frame in tqdm(frame_generator, desc='collecting crops'):
+        result = model(frame, device=device, verbose=False)[0]
+        detections = sv.Detections.from_ultralytics(result)
+        detections = detections.with_nms(threshold=0.5, class_agnostic=True)
+        detections = detections[detections.class_id == PLAYER_ID]
+        crops += [ sv.crop_image(frame, xyxy) for xyxy in detections.xyxy ]
 
-for i, (mask, cls, conf) in enumerate(zip(results.masks.data, results.boxes.cls, results.boxes.conf)):
-    if int(cls.item()) != 0:
-        continue
-    if conf.item() < 0.6:
-        continue
+    return crops
 
-    mask_np = mask.cpu().numpy().astype(np.uint8)
-    mask_np_resized = cv2.resize(mask_np, (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_NEAREST)
-    color_tuple = get_dominant_color(frame, mask_np_resized)
-    dominant_colors.append(np.concatenate(color_tuple))
-    valid_indices.append(i)
-    bounded_boxes.append(results.boxes.xyxy[i].cpu().numpy())
-    resized_mask.append(mask_np_resized)
+crops = extract_crops(SOURCE_VIDEO_PATH)
+team_classifier = TeamClassifier(device = device)
+team_classifier.fit(crops)
 
-if not dominant_colors:
-    print("No player detected")
-    exit()
+ellipse_annotator = sv.EllipseAnnotator(
+    color=sv.ColorPalette.from_hex(["#0000FF", "#00FF00", "#FFFF00"]),
+    thickness=2
+)
 
-# colors cluster
-dominant_colors_np = np.array(dominant_colors)
-kmeans = KMeans(n_clusters=NUM_CLUSTERS, n_init='auto')
-labels = kmeans.fit_predict(dominant_colors_np)
+triangle_annotator = sv.TriangleAnnotator(
+    color=sv.Color.from_hex("#F88158"),
+    base=20, height=17
+)
 
-# colors mapping
-visual_colors = [
-    (0, 0, 255),
-    (255, 0, 0),
-    (0, 255, 255)
-]
+label_annotator = sv.LabelAnnotator(
+    color=sv.ColorPalette.from_hex(["#0000FF", "#00FF00"]),
+    text_position=sv.Position.BOTTOM_CENTER
+)
 
-# draw results
-for index, label, box, mask in zip(valid_indices, labels, bounded_boxes, resized_mask):
-    x1, y1, x2, y2 = map(int, box)
-    color = visual_colors[label]
-    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+tracker = sv.ByteTrack()
+tracker.reset()
 
-    colored_mask = np.zeros_like(frame, dtype=np.uint8)
-    colored_mask[mask > 0] = color
-    frame = cv2.addWeighted(frame, 1.0, colored_mask, 0.4, 0)
+video_info = sv.VideoInfo.from_video_path(SOURCE_VIDEO_PATH)
+video_sink = sv.VideoSink(TARGET_VIDEO_PATH, video_info=video_info)
+frame_generator = sv.get_video_frames_generator(SOURCE_VIDEO_PATH)
 
-legend_labels = ['Team A (Red)', 'Team B (Blue)', 'Ref (Yellow)']
-visual_colors = kmeans.cluster_centers_.astype(int).tolist()
-x_start, y_start = 10, 10
-legend_height = 60 * NUM_CLUSTERS + 10
-legend_width = 200
-cv2.rectangle(frame, (x_start - 5, y_start - 5), (x_start + legend_width, y_start + legend_height), (255, 255, 255), -1)
+with video_sink:
+    for frame in tqdm(frame_generator, total=video_info.total_frames):
 
-for i, (label, color_set) in enumerate(zip(legend_labels, visual_colors)):
-    colors = [tuple(map(int, color_set[j*3:(j+1)*3])) for j in range(NUM_DOMINANT)]
-    for j, color in enumerate(colors):
-        top_left = (x_start + j*10, y_start + i * 30 * 2)
-        bottom_right = (x_start + (j+1)*10, y_start + 20 + i * 30 * 2)
-        cv2.rectangle(frame, top_left, bottom_right, color, -1)
-    cv2.putText(frame, label, (x_start, y_start + 45 + i * 30 * 2),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+        result = model(frame, device=device, verbose=False)[0]
 
-# save and show
-cv2.imwrite(OUTPUT_PATH, frame)
-print(f"result save in {OUTPUT_PATH}")
+        detections = sv.Detections.from_ultralytics(result)
+
+        detections = detections[detections.class_id != RIM_ID]
+
+        ball_detections = detections[detections.class_id == BALL_ID]
+        ball_detections.xyxy = sv.pad_boxes(xyxy=ball_detections.xyxy, px=10)
+
+        person_detections = detections[detections.class_id != BALL_ID]
+        person_detections = person_detections.with_nms(threshold=0.5, class_agnostic=True)
+        person_detections = tracker.update_with_detections(person_detections)
+
+        players_detections = person_detections[person_detections.class_id == PLAYER_ID]
+        players_crops = [sv.crop_image(frame, xyxy) for xyxy in players_detections.xyxy]
+        players_detections.class_id = team_classifier.predict(players_crops)
+
+        referees_detections = person_detections[person_detections.class_id == REFEREE_ID]
+
+        person_detections = sv.Detections.merge([players_detections, referees_detections])
+
+        labels = [
+            f"#{tracker_id}"
+            for tracker_id
+            in players_detections.tracker_id
+        ]
+
+
+        annotated_frame = frame.copy()
+        annotated_frame = ellipse_annotator.annotate(annotated_frame, person_detections)
+        annotated_frame = label_annotator.annotate(annotated_frame, players_detections, labels=labels)
+        annotated_frame = triangle_annotator.annotate(annotated_frame, ball_detections)
+        video_sink.write_frame(annotated_frame)
