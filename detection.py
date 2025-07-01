@@ -11,8 +11,8 @@ PLAYER_ID = 1
 REFEREE_ID = 2
 RIM_ID = 3
 
-SOURCE_VIDEO_PATH = 'tmp/video/video_3.mp4'
-TARGET_VIDEO_PATH = 'output_2.mp4'
+SOURCE_VIDEO_PATH = 'video.mp4'
+TARGET_VIDEO_PATH = 'output_3.mp4'
 model = YOLO('best.pt')
 model.conf = 0.5
 
