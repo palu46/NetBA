@@ -12,8 +12,8 @@ from keypoints_detection.configs.reference_court import BasketCourtConfiguration
 
 class KeypointsDetector:
 
-    def __init__(self,model):
-        self.model = model
+    def __init__(self,model: str):
+        self.model = YOLO(model)
         self.config = BasketCourtConfiguration()
         self.reference_keypoints = self.config.vertices
         self.edges = self.config.edges
