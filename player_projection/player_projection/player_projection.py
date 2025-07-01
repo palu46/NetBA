@@ -1,5 +1,3 @@
-from pygments.styles.rainbow_dash import WHITE
-
 from keypoints_detection.view_transformer.view import ViewTransformer
 from keypoints_detection.configs.reference_court import BasketCourtConfiguration
 import supervision as sv
