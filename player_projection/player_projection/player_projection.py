@@ -6,18 +6,10 @@ import cv2
 
 class PlayerProjection:
 
-    def __init__(self, frame_reference_points, filter, court_image):
+    def __init__(self, court_image):
         self.config = BasketCourtConfiguration()
         self.reference_keypoints = self.config.vertices
-        self.frame_reference_points = frame_reference_points
-        self.filter = filter
-        self.court_image = court_image
-        self.vertex_annotator = sv.VertexAnnotator(
-            color=sv.Color.from_hex('#FF1493'),
-            radius=8)
-        self.vertex_annotator_2 = sv.VertexAnnotator(
-            color=sv.Color.from_hex('#00BFFF'),
-            radius=8)
+        self.court_image = cv2.imread(court_image)
 
 
     def draw_points(self, image, points, face_color, edge_color, scale=0.1, padding=50, radius=10, thickness=2):
@@ -42,10 +34,10 @@ class PlayerProjection:
             )
         return image
 
-    def project_players(self, players_detections, referees_detections):
-        court_reference_points = np.array(self.reference_keypoints)[self.filter]
+    def project_players(self, frame_reference_points, filter, players_detections, referees_detections):
+        court_reference_points = np.array(self.reference_keypoints)[filter]
         transformer = ViewTransformer(
-            source=self.frame_reference_points,
+            source=frame_reference_points,
             target=court_reference_points
         )
 
