@@ -28,7 +28,7 @@ class KeypointsDetector:
             color=sv.Color.from_hex('#00BFFF'),
             radius=8)
 
-    def get_keypoints(self, input_frame: np.ndarray) -> (sv.KeyPoints, np.ndarray):
+    def get_keypoints(self, input_frame: np.ndarray) -> (sv.KeyPoints, np.ndarray, np.ndarray):
         ultralytics_results = self.model.predict(source=input_frame, conf=0.3, verbose=False)
         ultralytics_result = ultralytics_results[0]
 
@@ -61,7 +61,7 @@ class KeypointsDetector:
             scene=annotated_frame,
             key_points=frame_reference_key_points)
 
-        return frame_reference_points, annotated_frame
+        return frame_reference_points, filter, annotated_frame
 
 """
     reference_keypoints = CONFIG.vertices
