@@ -12,7 +12,7 @@ class PlayerProjection:
         self.court_image = cv2.imread(court_image)
 
 
-    def draw_points(self, image, points, face_color, edge_color, scale=0.1, padding=50, radius=10, thickness=2):
+    def draw_points(self, image, points, face_color, edge_color, scale=1, padding=50, radius=20, thickness=2):
         for point in points:
             scaled_point = (
                 int(point[0] * scale) + padding,
@@ -48,8 +48,8 @@ class PlayerProjection:
         court_referees_xy = transformer.transform_points(points=referees_xy)
 
         annotated_frame = self.court_image.copy()
-        annotated_frame = self.draw_points(annotated_frame, court_players_xy[court_players_xy.class_id == 0], sv.Color.from_hex("#0000FF"), sv.Color.WHITE)
-        annotated_frame = self.draw_points(annotated_frame, court_players_xy[court_players_xy.class_id == 1], sv.Color.from_hex("#00FF00"), sv.Color.WHITE)
+        annotated_frame = self.draw_points(annotated_frame, court_players_xy[players_detections.class_id == 0], sv.Color.from_hex("#0000FF"), sv.Color.BLACK)
+        annotated_frame = self.draw_points(annotated_frame, court_players_xy[players_detections.class_id == 1], sv.Color.from_hex("#00FF00"), sv.Color.BLACK)
         annotated_frame = self.draw_points(annotated_frame, court_referees_xy, sv.Color.from_hex("#FFFF00"), sv.Color.BLACK)
 
         return annotated_frame

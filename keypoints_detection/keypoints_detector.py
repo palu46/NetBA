@@ -1,11 +1,6 @@
-import cv2
 from ultralytics import YOLO
-import matplotlib.pyplot as plt
 import supervision as sv
-import torch
 import numpy as np
-from dataclasses import dataclass, field
-from typing import List, Tuple
 from keypoints_detection.view_transformer.view import ViewTransformer
 from keypoints_detection.configs.reference_court import BasketCourtConfiguration
 
@@ -40,7 +35,7 @@ class KeypointsDetector:
 
         court_reference_points = np.array(self.reference_keypoints)[filter]
 
-        transformer = ViewTransformer(
+        transformer = ViewTransformer( #TODO: catch error in case of less than 4 corresponding points
             source=court_reference_points,
             target=frame_reference_points
         )
