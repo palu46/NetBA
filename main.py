@@ -1,3 +1,4 @@
+import os
 import torch
 import warnings
 import supervision as sv
@@ -8,6 +9,9 @@ from keypoints_detection.keypoints_detector import KeypointsDetector
 from player_projection.player_projection.player_projection import PlayerProjection
 from video_annotation.annotation import annotate_detections
 from ocr.ocr_model import OcrModel
+
+if not os.path.exists("output/"):
+    os.mkdir("output/")
 
 if torch.cuda.is_available():
     device = "cuda"
