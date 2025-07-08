@@ -57,6 +57,8 @@ def annotate_keypoints(
         scene=annotated_frame, key_points=frame_reference_key_points
     )
 
+    return annotated_frame
+
 
 def annotate_radar(
     frame: np.ndarray,
