@@ -9,3 +9,20 @@ The main objectives are:
 - **Statistical Analysis**: Analyze gameplay dynamics and extract meaningful statistics such as player movement patterns, heatmaps, and positioning metrics.
 
 The project leverages image rectification, homography estimation, and tracking algorithms to achieve these goals.
+
+## Installation
+
+Before installing the project dependencies, make sure to install **PaddlePaddle**, which is required for OCR functionality.
+
+1. **Install PaddlePaddle**
+
+   Follow the official installation guide based on your system and environment:
+
+   👉 [PaddlePaddle Installation Guide](https://www.paddlepaddle.org.cn/en/install/quick?docurl=undefined)
+
+2. **Install project dependencies**
+
+   After PaddlePaddle is installed, you can install the remaining dependencies:
+
+   ```bash
+   pip install -r requirements.txt
