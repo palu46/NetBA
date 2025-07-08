@@ -3,7 +3,7 @@ import supervision as sv
 import numpy as np
 from keypoints_detection.view_transformer.view import ViewTransformer
 from keypoints_detection.configs.reference_court import BasketCourtConfiguration
-
+from video_annotation.annotation import annotate_keypoints
 
 class KeypointsDetector:
 
@@ -13,48 +13,35 @@ class KeypointsDetector:
         self.reference_keypoints = self.config.vertices
         self.edges = self.config.edges
 
-        self.edge_annotator = sv.EdgeAnnotator(
-            color=sv.Color.from_hex('#00BFFF'),
-            thickness=2, edges=self.edges)
-        self.vertex_annotator = sv.VertexAnnotator(
-            color=sv.Color.from_hex('#FF1493'),
-            radius=8)
-        self.vertex_annotator_2 = sv.VertexAnnotator(
-            color=sv.Color.from_hex('#00BFFF'),
-            radius=8)
-
-    def get_keypoints(self, input_frame: np.ndarray) -> (sv.KeyPoints, np.ndarray, np.ndarray):
+    def get_keypoints(self, input_frame: np.ndarray) -> tuple[sv.KeyPoints, np.ndarray, np.ndarray]:
         ultralytics_results = self.model.predict(source=input_frame, conf=0.3, verbose=False)
         ultralytics_result = ultralytics_results[0]
 
         key_points = sv.KeyPoints.from_ultralytics(ultralytics_result)
-        filter = key_points.confidence[0] > 0.85
-        frame_reference_points = key_points.xy[0][filter]
-        frame_reference_key_points = sv.KeyPoints(
-            xy=frame_reference_points[np.newaxis, ...])
+        
+        try:
+            filter = key_points.confidence[0] > 0.85
+            frame_reference_points = key_points.xy[0][filter]
+            frame_reference_key_points = sv.KeyPoints(
+                xy=frame_reference_points[np.newaxis, ...])
 
-        court_reference_points = np.array(self.reference_keypoints)[filter]
+            court_reference_points = np.array(self.reference_keypoints)[filter]
+            if len(court_reference_points) < 4:
+                return None, None, input_frame
 
-        transformer = ViewTransformer( #TODO: catch error in case of less than 4 corresponding points
-            source=court_reference_points,
-            target=frame_reference_points
-        )
+            transformer = ViewTransformer(
+                source=court_reference_points,
+                target=frame_reference_points
+            )
+        except:
+            return None, None, input_frame
 
         court_all_points = np.array(self.reference_keypoints)
         frame_all_points = transformer.transform_points(points=court_all_points)
 
         frame_all_key_points = sv.KeyPoints(xy=frame_all_points[np.newaxis, ...])
 
-        annotated_frame = input_frame.copy()
-        annotated_frame = self.edge_annotator.annotate(
-            scene=annotated_frame,
-            key_points=frame_all_key_points)
-        annotated_frame = self.vertex_annotator_2.annotate(
-            scene=annotated_frame,
-            key_points=frame_all_key_points)
-        annotated_frame = self.vertex_annotator.annotate(
-            scene=annotated_frame,
-            key_points=frame_reference_key_points)
+        annotated_frame = annotate_keypoints(input_frame, self.edges, frame_all_key_points, frame_reference_key_points)
 
         return frame_reference_points, filter, annotated_frame
 

@@ -1,4 +1,3 @@
-import torch
 import supervision as sv
 from ultralytics import YOLO
 from tqdm import tqdm
@@ -34,21 +33,6 @@ class PlayerDetector:
         self.team_classifier = TeamClassifier(device=self.device)
         self.team_classifier.fit(crops)
 
-        self.ellipse_annotator = sv.EllipseAnnotator(
-            color=sv.ColorPalette.from_hex(["#0000FF", "#00FF00", "#FFFF00"]),
-            thickness=2
-        )
-
-        self.triangle_annotator = sv.TriangleAnnotator(
-            color=sv.Color.from_hex("#F88158"),
-            base=20, height=17
-        )
-
-        self.label_annotator = sv.LabelAnnotator(
-            color=sv.ColorPalette.from_hex(["#0000FF", "#00FF00"]),
-            text_position=sv.Position.BOTTOM_CENTER
-        )
-
         self.tracker = sv.ByteTrack()
         self.tracker.reset()
 
@@ -72,19 +56,6 @@ class PlayerDetector:
 
         referees_detections = person_detections[person_detections.class_id == self.REFEREE_ID]
 
-        person_detections = sv.Detections.merge([players_detections, referees_detections])
-
-        labels = [
-            f"#{tracker_id}"
-            for tracker_id
-            in players_detections.tracker_id
-        ]
-
-        annotated_frame = frame.copy()
-        annotated_frame = self.ellipse_annotator.annotate(annotated_frame, person_detections)
-        annotated_frame = self.label_annotator.annotate(annotated_frame, players_detections, labels=labels)
-        annotated_frame = self.triangle_annotator.annotate(annotated_frame, ball_detections)
-
-        return annotated_frame, players_detections, referees_detections
+        return players_detections, referees_detections, ball_detections
 
 
