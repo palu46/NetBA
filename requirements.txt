@@ -1,0 +1,12 @@
+torch
+tqdm
+supervision
+numpy
+ultralytics
+opencv-python
+umap-learn
+scikit-learn
+transformers
+sentencepiece
+protobuf
+paddleocr
