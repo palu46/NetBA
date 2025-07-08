@@ -26,3 +26,28 @@ Before installing the project dependencies, make sure to install **PaddlePaddle*
 
    ```bash
    pip install -r requirements.txt
+   ```
+
+## Model Files & Git LFS
+
+This project includes large model files (e.g., YOLO and PaddleOCR), which are managed using **Git LFS**.
+
+### 🛠️ Cloning the Repository
+
+If you're cloning this repository, make sure to install Git LFS **before** working with the model files:
+
+1. **Install Git LFS**
+
+   - macOS: `brew install git-lfs`
+   - Ubuntu: `sudo apt install git-lfs`
+   - Windows: https://git-lfs.github.com
+
+2. **Initialize Git LFS**
+
+   After cloning the repo, run:
+
+   ```bash
+   git lfs install
+   ```
+
+This ensures all large model files are properly downloaded. Otherwise, you may see placeholder text files instead of actual models.
