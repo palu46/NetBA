@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from players_detection.PlayersDetector import PlayerDetector
 from keypoints_detection.keypoints_detector import KeypointsDetector
-from player_projection.player_projection.player_projection import PlayerProjection
+from player_projection.player_projection import PlayerProjection
 from video_annotation.annotation import annotate_detections
 from ocr.ocr_model import OcrModel
 
