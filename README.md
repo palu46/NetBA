@@ -38,9 +38,9 @@ If you're cloning this repository, make sure to install Git LFS **before** worki
 
 1. **Install Git LFS**
 
-   - macOS: `brew install git-lfs`
-   - Ubuntu: `sudo apt install git-lfs`
-   - Windows: https://git-lfs.github.com
+   - **Ubuntu/Debian:** `sudo apt install git-lfs`
+   - **macOS (Homebrew):** `brew install git-lfs`
+   - **Windows:** https://git-lfs.github.com
 
 2. **Initialize Git LFS**
 
@@ -51,3 +51,14 @@ If you're cloning this repository, make sure to install Git LFS **before** worki
    ```
 
 This ensures all large model files are properly downloaded. Otherwise, you may see placeholder text files instead of actual models.
+
+## ⚡ Optional: Speed Up Builds with ccache
+
+Installing `ccache` can significantly reduce build times.
+
+### Quick Install
+
+- **Ubuntu/Debian:** `sudo apt install ccache`
+- **macOS (Homebrew):** `brew install ccache`
+
+You can safely ignore any warnings if it's not installed, but it's recommended for faster repeated builds.
