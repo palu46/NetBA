@@ -54,7 +54,7 @@ class TeamClassifier:
         self.batch_size = batch_size
         self.features_model = SiglipVisionModel.from_pretrained(
             SIGLIP_MODEL_PATH).to(device)
-        self.processor = AutoProcessor.from_pretrained(SIGLIP_MODEL_PATH)
+        self.processor = AutoProcessor.from_pretrained(SIGLIP_MODEL_PATH, use_fast=True)
         self.reducer = umap.UMAP(n_components=3)
         self.cluster_model = KMeans(n_clusters=2)
 
