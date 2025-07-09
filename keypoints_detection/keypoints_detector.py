@@ -19,22 +19,19 @@ class KeypointsDetector:
 
         key_points = sv.KeyPoints.from_ultralytics(ultralytics_result)
         
-        try:
-            filter = key_points.confidence[0] > 0.85
-            frame_reference_points = key_points.xy[0][filter]
-            frame_reference_key_points = sv.KeyPoints(
-                xy=frame_reference_points[np.newaxis, ...])
+        filter = key_points.confidence[0] > 0.85
+        frame_reference_points = key_points.xy[0][filter]
+        frame_reference_key_points = sv.KeyPoints(
+            xy=frame_reference_points[np.newaxis, ...])
 
-            court_reference_points = np.array(self.reference_keypoints)[filter]
-            if len(court_reference_points) < 4:
-                return None, None, input_frame
-
-            transformer = ViewTransformer(
-                source=court_reference_points,
-                target=frame_reference_points
-            )
-        except:
+        court_reference_points = np.array(self.reference_keypoints)[filter]
+        if len(court_reference_points) < 4:
             return None, None, input_frame
+
+        transformer = ViewTransformer(
+            source=court_reference_points,
+            target=frame_reference_points
+        )
 
         court_all_points = np.array(self.reference_keypoints)
         frame_all_points = transformer.transform_points(points=court_all_points)

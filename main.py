@@ -44,6 +44,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)
     with players_video_sink, keypoints_video_sink, radar_video_sink:
         for frame in tqdm(frame_generator, total=video_info.total_frames):
+             
             players_detections, referees_detections, ball_detections = players_detector.detect_players(frame)
             jersey_numbers = ocr_model.predict_boxes(frame, players_detections)
             players_annotated_frame = annotate_detections(
@@ -53,11 +54,14 @@ with warnings.catch_warnings():
                 ball_detections,
                 jersey_numbers,
             )
-            keypoints, filter, keypoints_annotated_frame = keypoints_detector.get_keypoints(frame)
-            if keypoints is None:
-                radar_frame = player_projector.court_image
-            else:
+
+            try:
+                keypoints, filter, keypoints_annotated_frame = keypoints_detector.get_keypoints(frame)
                 radar_frame = player_projector.project_players(keypoints, filter, players_detections, referees_detections, jersey_numbers)
+            except: # less than 4 keypoints were found
+                keypoints_annotated_frame = frame
+                radar_frame = player_projector.court_image
+            
             players_video_sink.write_frame(players_annotated_frame)
             keypoints_video_sink.write_frame(keypoints_annotated_frame)
             radar_video_sink.write_frame(radar_frame)
