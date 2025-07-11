@@ -20,7 +20,7 @@ elif torch.backends.mps.is_available():
 else:
     device = "cpu"
 
-SOURCE_VIDEO_PATH = "data/video_6.mp4"
+SOURCE_VIDEO_PATH = "data/NYK-BOS.mp4"
 PLAYERS_DETCTION_VIDEO_PATH = "output/players_detection.mp4"
 KEYPOINTS_DETECION_VIDEO_PATH = "output/keypoints_detection.mp4"
 RADAR_VIDEO_PATH = "output/radar.mp4"
