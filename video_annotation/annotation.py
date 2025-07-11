@@ -2,6 +2,10 @@ import supervision as sv
 import numpy as np
 import cv2
 
+TEAM1_COLOR = "#28BCF7"
+TEAM2_COLOR = "#FA4E4E"
+REFEREES_COLOR = "#59A759"
+BALL_COLOR = "#E47041"
 
 def annotate_detections(
     frame: np.ndarray,
@@ -10,16 +14,17 @@ def annotate_detections(
     ball_detections: sv.Detections,
     jersey_numbers: np.ndarray,
 ):
+    
     ellipse_annotator = sv.EllipseAnnotator(
-        color=sv.ColorPalette.from_hex(["#0000FF", "#00FF00", "#FFFF00"]), thickness=2
+        color=sv.ColorPalette.from_hex([TEAM1_COLOR, TEAM2_COLOR, REFEREES_COLOR]), thickness=2
     )
-
     triangle_annotator = sv.TriangleAnnotator(
-        color=sv.Color.from_hex("#F88158"), base=20, height=17
+        color=sv.Color.from_hex(BALL_COLOR), base=20, height=17
     )
 
     label_annotator = sv.LabelAnnotator(
-        color=sv.ColorPalette.from_hex(["#0000FF", "#00FF00"]),
+        color=sv.ColorPalette.from_hex([TEAM1_COLOR, TEAM2_COLOR]),
+        text_color=sv.Color.BLACK,
         text_position=sv.Position.BOTTOM_CENTER,
     )
 
@@ -71,21 +76,21 @@ def annotate_radar(
     annotated_frame = draw_points(
         annotated_frame,
         court_players_xy[players_detections.class_id == 0],
-        sv.Color.from_hex("#0000FF"),
+        sv.Color.from_hex(TEAM1_COLOR),
         sv.Color.BLACK,
         jersey_numbers=jersey_numbers[players_detections.class_id == 0],
     )
     annotated_frame = draw_points(
         annotated_frame,
         court_players_xy[players_detections.class_id == 1],
-        sv.Color.from_hex("#00FF00"),
+        sv.Color.from_hex(TEAM2_COLOR),
         sv.Color.BLACK,
         jersey_numbers=jersey_numbers[players_detections.class_id == 1],
     )
     annotated_frame = draw_points(
         annotated_frame,
         court_referees_xy,
-        sv.Color.from_hex("#FFFF00"),
+        sv.Color.from_hex(REFEREES_COLOR),
         sv.Color.BLACK,
     )
 
