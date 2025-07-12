@@ -9,4 +9,5 @@ scikit-learn
 transformers
 sentencepiece
 protobuf
+moviepy
 paddleocr
