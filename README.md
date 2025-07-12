@@ -28,6 +28,16 @@ Before installing the project dependencies, make sure to install **PaddlePaddle*
    pip install -r requirements.txt
    ```
 
+## 🚀 Running the Project
+
+To run the project, simply call `main.py` with the path to the input video as a command-line argument:
+
+```bash
+python main.py path/to/your/video.mp4
+```
+
+The `data/` directory already contains some example video files you can use for testing.
+
 ## Model Files & Git LFS
 
 This project includes large model files (e.g., YOLO and PaddleOCR), which are managed using **Git LFS**.
