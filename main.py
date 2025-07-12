@@ -79,6 +79,7 @@ def process_video(source_video_path):
 
 
 def convert_video_codec():
+    print("Converting codecs...")
     for video in ["output/players_detection.mp4", "output/radar.mp4", "output/keypoints_detection.mp4"]:
         clip = VideoFileClip(video)
 
