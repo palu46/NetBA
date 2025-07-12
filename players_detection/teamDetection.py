@@ -4,6 +4,7 @@ import numpy as np
 import supervision as sv
 import torch
 import umap
+import cv2
 from sklearn.cluster import KMeans
 from transformers import AutoProcessor, SiglipVisionModel
 
@@ -81,6 +82,35 @@ class TeamClassifier:
                 data.append(embeddings)
 
         return np.concatenate(data)
+    
+    def extract_feature_histogram(self, crops: List[np.ndarray]) -> np.ndarray:
+      """
+      Extracts HSV Hue histograms from a list of player crops.
+      
+      Args:
+            crops (List[np.ndarray]): List of image crops.
+
+        Returns:
+            np.ndarray: Extracted features as a numpy array.
+      """
+      features = []
+
+      for crop in crops:
+          hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+
+          h_crop, w_crop = hsv.shape[:2]
+
+          # trying to mask jersey area
+          jersey_mask = np.zeros((h_crop, w_crop), np.uint8)
+          jersey_mask[int(0.1 * h_crop):int(0.5 * h_crop), int(0.2 * w_crop):int(0.8 * w_crop)] = 255
+
+          # Compute histogram of Hue channel using the jersey mask
+          hist = cv2.calcHist([hsv], [0], jersey_mask, [16], [0, 180])
+          hist = cv2.normalize(hist, None).flatten()
+
+          features.append(hist)
+
+      return np.vstack(features)
 
     def fit(self, crops: List[np.ndarray]) -> None:
         """
@@ -89,9 +119,10 @@ class TeamClassifier:
         Args:
             crops (List[np.ndarray]): List of image crops.
         """
-        data = self.extract_features(crops)
-        projections = self.reducer.fit_transform(data)
-        self.cluster_model.fit(projections)
+        # data = self.extract_features(crops)
+        # projections = self.reducer.fit_transform(data)
+        data = self.extract_feature_histogram(crops)
+        self.cluster_model.fit(data)
 
     def predict(self, crops: List[np.ndarray]) -> np.ndarray:
         """
@@ -106,6 +137,7 @@ class TeamClassifier:
         if len(crops) == 0:
             return np.array([])
 
-        data = self.extract_features(crops)
-        projections = self.reducer.transform(data)
-        return self.cluster_model.predict(projections)
+        # data = self.extract_features(crops)
+        # projections = self.reducer.transform(data)
+        data = self.extract_feature_histogram(crops)
+        return self.cluster_model.predict(data)
