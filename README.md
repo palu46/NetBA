@@ -38,6 +38,14 @@ python main.py path/to/your/video.mp4
 
 The `data/` directory already contains some example video files you can use for testing.
 
+### 🎬 Output
+
+The program produces two annotated videos:
+- `players_detection.mp4`
+- `radar.mp4`
+
+These will be saved in the `output/` directory after processing.
+
 ## Model Files & Git LFS
 
 This project includes large model files (e.g., YOLO and PaddleOCR), which are managed using **Git LFS**.
